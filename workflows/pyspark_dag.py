@@ -11,7 +11,7 @@ from airflow.providers.google.cloud.operators.dataproc import (
 
 # define the variables
 PROJECT_ID = "batchdp"
-REGION = "us"
+REGION = "us-central1"
 CLUSTER_NAME = "my-demo-cluster"
 COMPOSER_BUCKET = "us-central1-batchdp-0390f10f-bucket" ## change this 
 
@@ -45,7 +45,7 @@ PYSPARK_JOB_4 = {
 
 
 ARGS = {
-    "owner": "Ravi",
+    "owner": "Ravi SEO",
     "start_date": None,
     "depends_on_past": False,
     "email_on_failure": False,
