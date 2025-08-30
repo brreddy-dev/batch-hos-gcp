@@ -56,11 +56,17 @@ with DAG(
     tags=["pyspark", "dataproc", "etl", "marvel"],
 ) as dag:
 
-    start_cluster = DataprocStartClusterOperator(
-        task_id="start_cluster",
-        project_id=PROJECT_ID,
-        region=REGION,
-        cluster_name=CLUSTER_NAME,
+        start_cluster = DataprocCreateClusterOperator(
+    task_id="start_cluster",
+    project_id=PROJECT_ID,
+    region=REGION,
+    cluster_name=CLUSTER_NAME,
+    cluster_config={
+        "master_config": {"num_instances": 1, "machine_type_uri": "n1-standard-2"},
+        "worker_config": {"num_instances": 2, "machine_type_uri": "n1-standard-2"},
+    },
+    use_if_exists=True,   # supported here
+
     )
 
     pyspark_task_1 = DataprocSubmitJobOperator(
