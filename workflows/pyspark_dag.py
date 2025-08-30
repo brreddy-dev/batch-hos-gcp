@@ -2,7 +2,7 @@ from airflow import DAG
 from datetime import timedelta
 from airflow.utils.dates import days_ago
 from airflow.providers.google.cloud.operators.dataproc import (
-    DataprocStartClusterOperator,
+    DataprocCreateClusterOperator,
     DataprocStopClusterOperator,
     DataprocSubmitJobOperator,
 )
@@ -56,19 +56,20 @@ with DAG(
     tags=["pyspark", "dataproc", "etl", "marvel"],
 ) as dag:
 
-        start_cluster = DataprocCreateClusterOperator(
-    task_id="start_cluster",
-    project_id=PROJECT_ID,
-    region=REGION,
-    cluster_name=CLUSTER_NAME,
-    cluster_config={
-        "master_config": {"num_instances": 1, "machine_type_uri": "n1-standard-2"},
-        "worker_config": {"num_instances": 2, "machine_type_uri": "n1-standard-2"},
-    },
-    use_if_exists=True,   # supported here
-
+    # Start cluster (idempotent)
+    start_cluster = DataprocCreateClusterOperator(
+        task_id="start_cluster",
+        project_id=PROJECT_ID,
+        region=REGION,
+        cluster_name=CLUSTER_NAME,
+        cluster_config={
+            "master_config": {"num_instances": 1, "machine_type_uri": "n1-standard-2"},
+            "worker_config": {"num_instances": 2, "machine_type_uri": "n1-standard-2"},
+        },
+        use_if_exists=True,
     )
 
+    # Submit PySpark jobs
     pyspark_task_1 = DataprocSubmitJobOperator(
         task_id="pyspark_task_1", job=PYSPARK_JOB_1, region=REGION, project_id=PROJECT_ID
     )
@@ -82,12 +83,13 @@ with DAG(
         task_id="pyspark_task_4", job=PYSPARK_JOB_4, region=REGION, project_id=PROJECT_ID
     )
 
+    # Stop cluster
     stop_cluster = DataprocStopClusterOperator(
         task_id="stop_cluster",
         project_id=PROJECT_ID,
         region=REGION,
         cluster_name=CLUSTER_NAME,
-        trigger_rule="all_done",   # ensure cluster always stops
+        trigger_rule="all_done",   # always stop cluster, even if job fails
     )
 
     # DAG ordering
